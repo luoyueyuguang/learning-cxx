@@ -51,12 +51,10 @@ int main(int argc, char **argv) {
 
     std::vector<const char *> answers[]{
         {"fd"},
-        {"ffr", "d"},
-        {"r", "d", "r", "d", "d"}
+        {"d", "ffr"},
+        {"d", "d", "r"}
     };
-
     // ---- 不要修改以下代码 ----
-
     for (auto i = 0; i < 3; ++i) {
         ASSERT(problems[i].size() == answers[i].size(), "wrong size");
         for (auto j = 0; j < problems[i].size(); ++j) {
