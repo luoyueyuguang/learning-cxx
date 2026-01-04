@@ -13,7 +13,9 @@ public:
     DynFibonacci(int capacity): cache(new ?), cached(?) {}
 
     // TODO: 实现复制构造器
-    DynFibonacci(DynFibonacci const &) = delete;
+    DynFibonacci(DynFibonacci const &){
+        
+    }
 
     // TODO: 实现析构器，释放缓存空间
     ~DynFibonacci();

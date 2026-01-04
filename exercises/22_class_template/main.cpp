@@ -10,6 +10,10 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for (int i = 0; i < 4; i++) {
+            shape[i] = shape_[i];
+            size *= shape[i];
+        }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
@@ -28,6 +32,52 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        for (int i = 0; i < 4; i++) {
+            if (others.shape[i] != 1 && others.shape[i] != shape[i]) {
+                throw std::runtime_error("Shape mismatch for broadcast addition");
+            }
+        }
+        
+        // 计算广播步长
+        unsigned int stride[4] = {1, 1, 1, 1};
+        for (int i = 0; i < 4; i++) {
+            if (others.shape[i] == 1) {
+                stride[i] = 0;  // 这个维度上others的数据是重复的
+            } else {
+                stride[i] = 1;  // 这个维度上others的数据需要正常索引
+            }
+        }
+        
+        // 计算实际步长用于索引
+        unsigned int others_stride[4];
+        others_stride[3] = 1;
+        others_stride[2] = others.shape[3];
+        others_stride[1] = others_stride[2] * others.shape[2];
+        others_stride[0] = others_stride[1] * others.shape[1];
+        
+        // 遍历所有元素
+        for (unsigned int i0 = 0; i0 < shape[0]; i0++) {
+            for (unsigned int i1 = 0; i1 < shape[1]; i1++) {
+                for (unsigned int i2 = 0; i2 < shape[2]; i2++) {
+                    for (unsigned int i3 = 0; i3 < shape[3]; i3++) {
+                        // 计算this的索引
+                        unsigned int this_idx = i0 * shape[1] * shape[2] * shape[3]
+                                             + i1 * shape[2] * shape[3]
+                                             + i2 * shape[3]
+                                             + i3;
+                        
+                        // 计算others的索引（考虑广播）
+                        unsigned int others_idx = (stride[0] ? i0 : 0) * others_stride[0]
+                                                + (stride[1] ? i1 : 0) * others_stride[1]
+                                                + (stride[2] ? i2 : 0) * others_stride[2]
+                                                + (stride[3] ? i3 : 0) * others_stride[3];
+                        
+                        data[this_idx] += others.data[others_idx];
+                    }
+                }
+            }
+        }
+        
         return *this;
     }
 };
